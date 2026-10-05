@@ -1,25 +1,79 @@
-# 🎈 Blank app template
+import streamlit as st
 
-A simple Streamlit app template for you to modify!
+st.set_page_config(
+    page_title="Beyond Dispatch AI",
+    layout="wide"
+)
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+st.title("🚛 Beyond Dispatch AI")
 
-### How to run it on your own machine
+driver = st.text_input(
+    "Driver Name",
+    value="Brax"
+)
 
-Prerequisite: install `uv` if you don't already have it.
+col1, col2 = st.columns(2)
 
-```
-$ curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+with col1:
+    current_city = st.text_input(
+        "Current City",
+        value="York"
+    )
 
-1. Sync the dependencies
+    current_state = st.text_input(
+        "Current State",
+        value="PA"
+    )
 
-   ```
-   $ uv sync
-   ```
+with col2:
+    home_city = st.text_input(
+        "Home City",
+        value="York"
+    )
 
-2. Run the app
+    home_state = st.text_input(
+        "Home State",
+        value="PA"
+    )
 
-   ```
-   $ uv run streamlit run streamlit_app.py
-   ```
+loads_needed = st.selectbox(
+    "Loads Needed",
+    [1, 2, 3],
+    index=2
+)
+
+dispatch_text = st.text_area(
+    "Dispatch Dump",
+    height=200
+)
+
+hotlead_text = st.text_area(
+    "Hot Leads",
+    height=200
+)
+
+offer_text = st.text_area(
+    "Offers",
+    height=200
+)
+
+if st.button("RUN DISPATCH AI"):
+
+    st.success("System Ready")
+
+    st.write(
+        f"Driver: {driver}"
+    )
+
+    st.write(
+        f"Current Location: "
+        f"{current_city}, {current_state}"
+    )
+
+    st.write(
+        f"Loads Needed: "
+        f"{loads_needed}"
+    )
+
+
+    
