@@ -156,54 +156,374 @@ def parse_offer_list(text):
 
     return pd.DataFrame(rows)
 
-if st.button("RUN DISPATCH AI"):
+def parse_dispatch_dump(text):
 
-    if offer_text:
+    loads = []
 
-        offer_df = parse_offer_list(
-            offer_text
+    load_ids = re.findall(
+        r'\b(36\d{6})\b',
+        text
+    )
+
+    destinations = re.findall(
+        r'-->\s*([A-Z ]+),\s*([A-Z]{2})',
+        text
+    )
+
+    count = min(
+        len(load_ids),
+        len(destinations)
+    )
+
+    for i in range(count):
+
+        try:
+
+            destination_city = (
+                destinations[i][0]
+                .strip()
+                .title()
+            )
+
+            destination_state = (
+                destinations[i][1]
+                .strip()
+            )
+
+            loads.append({
+
+                "Load ID":
+                    load_ids[i],
+
+                "Origin City":
+                    "Chillicothe",
+
+                "Origin State":
+                    "OH",
+
+                "Destination City":
+                    destination_city,
+
+                "Destination State":
+                    destination_state,
+
+                "Loaded Miles":
+                    None
+
+            })
+
+        except:
+
+            pass
+
+    return pd.DataFrame(loads)
+
+     
+
+       
+def parse_hot_leads(text):
+
+    loads = []
+
+    for line in text.splitlines():
+
+        if "~" not in line:
+            continue
+
+        try:
+
+            left, right = line.split("~")
+
+            origin_match = re.search(
+                r'(.+?),\s*([A-Z]{2})',
+                left.strip()
+            )
+
+            dest_match = re.search(
+                r'(.+?),\s*([A-Z]{2})',
+                right.strip()
+            )
+
+            if not origin_match:
+                continue
+
+            if not dest_match:
+                continue
+
+            loads.append({
+
+                "Origin City":
+                    origin_match.group(1)
+                    .replace("1 ", "")
+                    .strip()
+                    .title(),
+
+                "Origin State":
+                    origin_match.group(2),
+
+                "Destination City":
+                    dest_match.group(1)
+                    .strip()
+                    .title(),
+
+                "Destination State":
+                    dest_match.group(2)
+
+            })
+
+        except:
+
+            pass
+
+    return pd.DataFrame(loads)
+
+def build_master_load_pool(
+    dispatch_df,
+    hotlead_df,
+    offer_df
+):
+
+    dispatch = dispatch_df.copy()
+
+    if not dispatch.empty:
+
+        dispatch["Source"] = "Dispatch"
+
+        dispatch = dispatch[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    hotleads = hotlead_df.copy()
+
+    if not hotleads.empty:
+
+        hotleads["Source"] = "Hot Lead"
+
+        hotleads = hotleads[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    offers = offer_df.copy()
+
+    if not offers.empty:
+
+        offers["Source"] = "Offer"
+
+        offers = offers.rename(
+            columns={
+                "CITY": "Destination City",
+                "ST": "Destination State"
+            }
         )
 
-        st.success(
+        offers = offers[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    master_df = pd.concat(
+        [
+            dispatch,
+            hotleads,
+            offers
+        ],
+        ignore_index=True
+    )
+
+    return master_df
+
+if st.button("RUN DISPATCH AI"):
+    dispatch_df = pd.DataFrame()
+
+    hotlead_df = pd.DataFrame()
+
+    offer_df = pd.DataFrame()
+
+if dispatch_text:
+
+        dispatch_df = (
+            parse_dispatch_dump(
+                dispatch_text
+            )
+        )
+
+if hotlead_text:
+
+        hotlead_df = (
+            parse_hot_leads(
+                hotlead_text
+            )
+        )       
+if offer_text:
+
+        offer_df = (
+            parse_offer_list(
+                offer_text
+            )
+        )
+master_df = (
+        build_master_load_pool(
+            dispatch_df,
+            hotlead_df,
+            offer_df
+        )
+    )
+st.success(
             f"Offers Parsed: {len(offer_df)}"
         )
 
-        st.dataframe(
+st.dataframe(
             offer_df
         )
 
-    st.success("Dispatch AI Running")
+st.success("Dispatch AI Running")
 
-    st.write(
+st.write(
         f"Driver: {driver}"
     )
 
-    st.write(
+st.write(
         f"Current Location: "
         f"{current_city}, {current_state}"
     )
 
-    st.write(
+st.write(
         f"Home Location: "
         f"{home_city}, {home_state}"
     )
 
-    st.write(
+st.write(
         f"Loads Requested: "
         f"{loads_needed}"
     )
 
-    st.write(
+st.write(
         f"Dispatch Rows: "
         f"{len(dispatch_text.splitlines())}"
     )
 
-    st.write(
+st.write(
         f"Hot Lead Rows: "
         f"{len(hotlead_text.splitlines())}"
     )
 
-    st.write(
+st.write(
         f"Offer Rows: "
         f"{len(offer_text.splitlines())}"
+    )
+if dispatch_text:
+
+    dispatch_df = parse_dispatch_dump(
+        dispatch_text
+    )
+
+    st.subheader(
+        "Dispatch Loads"
+    )
+
+    st.dataframe(
+        dispatch_df,
+        use_container_width=True
+    )
+
+if hotlead_text:
+
+        hotlead_df = parse_hot_leads(
+            hotlead_text
+        )
+
+        st.subheader(
+            "Hot Leads"
+        )
+
+        st.dataframe(
+            hotlead_df,
+            use_container_width=True
+        )
+
+def build_master_load_pool(
+    dispatch_df,
+    hotlead_df,
+    offer_df
+):
+
+    dispatch = dispatch_df.copy()
+
+    if not dispatch.empty:
+
+        dispatch["Source"] = "Dispatch"
+
+        dispatch = dispatch[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    hotleads = hotlead_df.copy()
+
+    if not hotleads.empty:
+
+        hotleads["Source"] = "Hot Lead"
+
+        hotleads = hotleads[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    offers = offer_df.copy()
+
+    if not offers.empty:
+
+        offers["Source"] = "Offer"
+
+        offers = offers.rename(
+            columns={
+                "CITY":
+                    "Destination City",
+                "ST":
+                    "Destination State"
+            }
+        )
+
+        offers = offers[
+            [
+                "Destination City",
+                "Destination State",
+                "Source"
+            ]
+        ]
+
+    master_df = pd.concat(
+        [
+            dispatch,
+            hotleads,
+            offers
+        ],
+        ignore_index=True
+    )
+
+    return master_df
+    st.subheader(
+        "MASTER LOAD POOL"
+    )
+
+st.dataframe(
+        master_df,
+        use_container_width=True
     )

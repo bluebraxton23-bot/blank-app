@@ -41,11 +41,12 @@ loads_needed = st.selectbox(
     [1, 2, 3],
     index=2
 )
+    dispatch_df = pd.DataFrame()
 
-dispatch_text = st.text_area(
-    "Dispatch Dump",
-    height=200
-)
+    hotlead_df = pd.DataFrame()
+
+    offer_df = pd.DataFrame()
+
 
 hotlead_text = st.text_area(
     "Hot Leads",
@@ -58,7 +59,12 @@ offer_text = st.text_area(
 )
 
 if st.button("RUN DISPATCH AI"):
+    dispatch_df = pd.DataFrame()
 
+    hotlead_df = pd.DataFrame()
+
+    offer_df = pd.DataFrame()
+    
     st.success("System Ready")
 
     st.write(
@@ -75,5 +81,19 @@ if st.button("RUN DISPATCH AI"):
         f"{loads_needed}"
     )
 
+if dispatch_text:
 
+    dispatch_df = parse_dispatch_dump(
+        dispatch_text
+    )
+
+    st.subheader(
+        "Dispatch Loads"
+    )
+
+    st.dataframe(
+        dispatch_df,
+        use_container_width=True
+    )
     
+
