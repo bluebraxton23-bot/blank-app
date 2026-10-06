@@ -458,7 +458,64 @@ if st.button("RUN DISPATCH AI"):
     st.subheader(
             "PROFITABILITY ANALYSIS"
         )
+    st.subheader(
+        "🏆 TOP RECOMMENDATIONS"
+    )
 
+    for _, row in profit_df.head(1).iterrows():
+
+        st.success(
+            f"{row['CITY']}, "
+            f"{row['ST']} | "
+            f"Pocket: ${row['Pocket']:,.0f} | "
+            f"{row['Recommendation']}"
+        )
+
+
+        st.subheader(
+        "🚛 BEST 3-LOAD SEQUENCE"
+    )
+
+    best_three = profit_df.head(3)
+
+    total_pocket = (
+        best_three["Pocket"]
+        .sum()
+    )
+
+    st.write(
+        "LEG 1"
+    )
+
+    st.success(
+        f"{best_three.iloc[0]['CITY']}, "
+        f"{best_three.iloc[0]['ST']} | "
+        f"Pocket ${best_three.iloc[0]['Pocket']:,.0f}"
+    )
+
+    st.write(
+        "LEG 2"
+    )
+
+    st.success(
+        f"{best_three.iloc[1]['CITY']}, "
+        f"{best_three.iloc[1]['ST']} | "
+        f"Pocket ${best_three.iloc[1]['Pocket']:,.0f}"
+    )
+
+    st.write(
+        "LEG 3"
+    )
+
+    st.success(
+        f"{best_three.iloc[2]['CITY']}, "
+        f"{best_three.iloc[2]['ST']} | "
+        f"Pocket ${best_three.iloc[2]['Pocket']:,.0f}"
+    )
+
+    st.subheader(
+        f"💰 TOTAL POCKET: ${total_pocket:,.0f}"
+    )
     st.dataframe(
             profit_df
         )
