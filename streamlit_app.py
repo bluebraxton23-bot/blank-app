@@ -343,34 +343,48 @@ def build_master_load_pool(
 
     return master_df
 
-    dispatch_df = pd.DataFrame()
 
-    hotlead_df = pd.DataFrame()
 
-    offer_df = pd.DataFrame()
+def build_offer_profitability(offer_df):
 
-if dispatch_text:
+    offers = offer_df.copy()
 
-        dispatch_df = (
-            parse_dispatch_dump(
-                dispatch_text
-            )
+    offers["Miles"] = offers["MI"]
+
+    offers["Revenue"] = offers["Rate"]
+
+    offers["Fuel Cost"] = (
+        offers["Miles"].apply(
+            calculate_fuel_cost
         )
+    )
 
-if hotlead_text:
+    offers["Driver Cost"] = (
+        offers["Miles"] * DRIVER_RATE
+    )
 
-        hotlead_df = (
-            parse_hot_leads(
-                hotlead_text
-            )
-        )       
-if offer_text:
+    offers["Operating Cost"] = (
+        OVERHEAD_COST +
+        INSURANCE_COST
+    )
 
-        offer_df = (
-            parse_offer_list(
-                offer_text
-            )
-        )
+    offers["Total Cost"] = (
+        offers["Fuel Cost"]
+        +
+        offers["Driver Cost"]
+        +
+        offers["Operating Cost"]
+    )
+
+    offers["Pocket"] = (
+        offers["Revenue"]
+        -
+        offers["Total Cost"]
+    )
+
+    return offers
+
+
 if st.button("RUN DISPATCH AI"):
 
     dispatch_df = pd.DataFrame()
