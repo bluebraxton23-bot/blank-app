@@ -15,7 +15,82 @@ OVERHEAD_COST = 229.00
 
 INSURANCE_COST = 79.00
 
+def get_coordinates(city, state):
 
+    query = f"{city}, {state}"
+
+    url = (
+        "https://nominatim.openstreetmap.org/search"
+    )
+
+    params = {
+        "q": query,
+        "format": "json",
+        "limit": 1
+    }
+
+    headers = {
+        "User-Agent": "BeyondDispatch"
+    }
+
+    response = requests.get(
+        url,
+        params=params,
+        headers=headers,
+        timeout=10
+    )
+
+    data = response.json()
+
+    if not data:
+        return None
+
+    return (
+        float(data[0]["lat"]),
+        float(data[0]["lon"])
+    )
+from math import (
+    radians,
+    sin,
+    cos,
+    sqrt,
+    atan2
+)
+def distance_miles(
+    lat1,
+    lon1,
+    lat2,
+    lon2
+):
+
+    earth_radius = 3958.8
+
+    dlat = radians(
+        lat2 - lat1
+    )
+
+    dlon = radians(
+        lon2 - lon1
+    )
+
+    a = (
+        sin(dlat / 2) ** 2
+        +
+        cos(radians(lat1))
+        *
+        cos(radians(lat2))
+        *
+        sin(dlon / 2) ** 2
+    )
+
+    c = 2 * atan2(
+        sqrt(a),
+        sqrt(1 - a)
+    )
+
+    return (
+        earth_radius * c
+    )
 st.set_page_config(
     page_title="Beyond Dispatch AI",
     layout="wide"
@@ -454,7 +529,40 @@ if st.button("RUN DISPATCH AI"):
     profit_df = build_offer_profitability(
             offer_df
         )
+    current_coords = get_coordinates(
+            current_city,
+            current_state
+         )
 
+    distances = []
+
+    for _, row in profit_df.iterrows():
+
+            load_coords = get_coordinates(
+                row["CITY"],
+                row["ST"]
+            )
+
+            if current_coords and load_coords:
+
+                miles = distance_miles(
+                    current_coords[0],
+                    current_coords[1],
+                    load_coords[0],
+                    load_coords[1]
+                )
+
+            else:
+
+                miles = 9999
+
+            distances.append(
+                round(miles)
+            )
+
+    profit_df["Distance From Current"] = (
+            distances
+        )
     st.subheader(
             "PROFITABILITY ANALYSIS"
         )
