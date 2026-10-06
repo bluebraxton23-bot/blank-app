@@ -414,6 +414,14 @@ def build_offer_profitability(offer_df):
         offers["Pocket"]
         .apply(recommendation)
     )
+
+    offers["Pocket 300 Bid"] = (
+        offers["Total Cost"] + 300
+    )
+
+    offers["Pocket 500 Bid"] = (
+        offers["Total Cost"] + 500
+    )
     return offers
 
 
