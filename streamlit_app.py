@@ -397,7 +397,23 @@ def build_offer_profitability(offer_df):
         -
         offers["Total Cost"]
     )
+    def recommendation(pocket):
 
+        if pocket >= 500:
+            return "TAKE IT"
+
+        if pocket >= 300:
+            return "ACCEPTABLE"
+
+        if pocket > 0:
+            return "BID HIGHER"
+
+        return "REJECT"
+
+    offers["Recommendation"] = (
+        offers["Pocket"]
+        .apply(recommendation)
+    )
     return offers
 
 
