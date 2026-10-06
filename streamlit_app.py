@@ -5,6 +5,16 @@ import numpy as np
 import requests
 import re
 
+CURRENT_DIESEL_PRICE = 6.382
+
+MPG = 7.5
+
+DRIVER_RATE = 0.70
+
+OVERHEAD_COST = 229.00
+
+INSURANCE_COST = 79.00
+
 
 st.set_page_config(
     page_title="Beyond Dispatch AI",
@@ -343,7 +353,13 @@ def build_master_load_pool(
 
     return master_df
 
+def calculate_fuel_cost(miles):
 
+    return round(
+        (miles / MPG)
+        * CURRENT_DIESEL_PRICE,
+        2
+    )
 
 def build_offer_profitability(offer_df):
 
@@ -409,6 +425,18 @@ if st.button("RUN DISPATCH AI"):
 
         offer_df = parse_offer_list(
             offer_text
+        )
+
+    profit_df = build_offer_profitability(
+            offer_df
+        )
+
+    st.subheader(
+            "PROFITABILITY ANALYSIS"
+        )
+
+    st.dataframe(
+            profit_df
         )
 
     master_df = build_master_load_pool(
