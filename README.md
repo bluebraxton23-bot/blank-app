@@ -58,7 +58,7 @@ offer_text = st.text_area(
     height=200
 )
 
-if st.button("RUN DISPATCH AI"):
+
     dispatch_df = pd.DataFrame()
 
     hotlead_df = pd.DataFrame()
