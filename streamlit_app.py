@@ -442,7 +442,6 @@ def calculate_fuel_cost(miles):
         * CURRENT_DIESEL_PRICE,
         2
     )
-
 def build_offer_profitability(offer_df):
 
     offers = offer_df.copy()
@@ -462,8 +461,11 @@ def build_offer_profitability(offer_df):
     )
 
     offers["Operating Cost"] = (
-        OVERHEAD_COST +
+        OVERHEAD_COST
+        +
         INSURANCE_COST
+        +
+        300
     )
 
     offers["Total Cost"] = (
@@ -479,6 +481,7 @@ def build_offer_profitability(offer_df):
         -
         offers["Total Cost"]
     )
+
     def recommendation(pocket):
 
         if pocket >= 500:
@@ -488,9 +491,9 @@ def build_offer_profitability(offer_df):
             return "ACCEPTABLE"
 
         if pocket > 0:
-            return "BID HIGHER"
+            return "MARGINAL"
 
-        return "REJECT"
+        return "DECLINE"
 
     offers["Recommendation"] = (
         offers["Pocket"]
@@ -504,6 +507,7 @@ def build_offer_profitability(offer_df):
     offers["Pocket 500 Bid"] = (
         offers["Total Cost"] + 500
     )
+
     return offers
 def build_three_leg_route(
     profit_df,
@@ -547,11 +551,7 @@ def build_three_leg_route(
 
                 distance = 9999
 
-            score = (
-                row["Pocket"]
-                -
-                (distance * 1.25)
-            )
+            score = row["Pocket"]
 
             scores.append(score)
 
