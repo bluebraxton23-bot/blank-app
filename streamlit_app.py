@@ -40,9 +40,16 @@ def get_coordinates(city, state):
         timeout=10
     )
 
-    data = response.json()
+    try:
+
+        data = response.json()
+
+    except Exception:
+
+        return None
 
     if not data:
+
         return None
 
     return (
@@ -498,7 +505,88 @@ def build_offer_profitability(offer_df):
         offers["Total Cost"] + 500
     )
     return offers
+def build_three_leg_route(
+    profit_df,
+    start_city,
+    start_state
+):
 
+    route = []
+
+    remaining = profit_df.copy()
+
+    origin_city = start_city
+    origin_state = start_state
+
+    for _ in range(min(3, len(remaining))):
+
+        origin_coords = get_coordinates(
+            origin_city,
+            origin_state
+        )
+
+        scores = []
+
+        for _, row in remaining.iterrows():
+
+            load_coords = get_coordinates(
+                row["CITY"],
+                row["ST"]
+            )
+
+            if origin_coords and load_coords:
+
+                distance = distance_miles(
+                    origin_coords[0],
+                    origin_coords[1],
+                    load_coords[0],
+                    load_coords[1]
+                )
+
+            else:
+
+                distance = 9999
+
+            score = (
+                row["Pocket"]
+                -
+                (distance * 0.50)
+            )
+
+            scores.append(
+                score
+            )
+
+        remaining["Route Score"] = scores
+
+        best_idx = (
+            remaining["Route Score"]
+            .idxmax()
+        )
+
+        best_load = remaining.loc[
+            best_idx
+        ]
+
+        route.append(
+            best_load
+        )
+
+        origin_city = (
+            best_load["CITY"]
+        )
+
+        origin_state = (
+            best_load["ST"]
+        )
+
+        remaining = (
+            remaining.drop(best_idx)
+        )
+
+    return pd.DataFrame(
+        route
+    )       
 
 if st.button("RUN DISPATCH AI"):
 
@@ -598,10 +686,11 @@ if st.button("RUN DISPATCH AI"):
             "🚛 BEST 3-LOAD SEQUENCE"
         )
 
-        best_three = profit_df.sort_values(
-            by="Dispatch Score",
-            ascending=False
-        ).head(3)
+        best_three = build_three_leg_route(
+            profit_df,
+            current_city,
+            current_state
+        )
 
         total_pocket = (
             best_three["Pocket"]
