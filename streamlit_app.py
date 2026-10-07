@@ -550,14 +550,30 @@ def build_three_leg_route(
             score = (
                 row["Pocket"]
                 -
-                (distance * 0.50)
+                (distance * 1.25)
             )
 
-            scores.append(
-                score
-            )
+            scores.append(score)
 
         remaining["Route Score"] = scores
+
+        st.write(
+            f"Current Origin: {origin_city}, {origin_state}"
+        )
+
+        st.dataframe(
+            remaining[
+                [
+                    "CITY",
+                    "ST",
+                    "Pocket",
+                    "Route Score"
+                ]
+            ].sort_values(
+                by="Route Score",
+                ascending=False
+            )
+        )
 
         best_idx = (
             remaining["Route Score"]
