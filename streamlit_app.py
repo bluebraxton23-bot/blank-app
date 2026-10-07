@@ -526,17 +526,18 @@ if st.button("RUN DISPATCH AI"):
             offer_text
         )
 
-    profit_df = build_offer_profitability(
+        profit_df = build_offer_profitability(
             offer_df
         )
-    current_coords = get_coordinates(
+
+        current_coords = get_coordinates(
             current_city,
             current_state
-         )
+        )
 
-    distances = []
+        distances = []
 
-    for _, row in profit_df.iterrows():
+        for _, row in profit_df.iterrows():
 
             load_coords = get_coordinates(
                 row["CITY"],
@@ -560,100 +561,100 @@ if st.button("RUN DISPATCH AI"):
                 round(miles)
             )
 
-profit_df["Distance From Current"] = (
-    distances
-)
-
-profit_df["Dispatch Score"] = (
-    profit_df["Pocket"]
-    -
-    (
-        profit_df["Distance From Current"]
-        * 0.50
-    )
-)
-
-st.subheader(
-    "PROFITABILITY ANALYSIS"
-)
-st.subheader(
-        "🏆 TOP RECOMMENDATIONS"
-    )
-
-for _, row in profit_df.head(1).iterrows():
-
-        st.success(
-            f"{row['CITY']}, "
-            f"{row['ST']} | "
-            f"Pocket: ${row['Pocket']:,.0f} | "
-            f"{row['Recommendation']}"
+        profit_df["Distance From Current"] = (
+            distances
         )
 
+        profit_df["Dispatch Score"] = (
+            profit_df["Pocket"]
+            -
+            (
+                profit_df["Distance From Current"]
+                * 0.50
+            )
+        )
 
         st.subheader(
-        "🚛 BEST 3-LOAD SEQUENCE"
-    )
+            "PROFITABILITY ANALYSIS"
+        )
 
-best_three = profit_df.head(3)
+        st.subheader(
+            "🏆 TOP RECOMMENDATIONS"
+        )
 
-total_pocket = (
-        best_three["Pocket"]
-        .sum()
-    )
+        for _, row in profit_df.sort_values(
+            by="Dispatch Score",
+            ascending=False
+        ).head(1).iterrows():
 
-st.write(
-        "LEG 1"
-    )
+            st.success(
+                f"{row['CITY']}, "
+                f"{row['ST']} | "
+                f"Pocket: ${row['Pocket']:,.0f} | "
+                f"{row['Recommendation']}"
+            )
 
-st.success(
-        f"{best_three.iloc[0]['CITY']}, "
-        f"{best_three.iloc[0]['ST']} | "
-        f"Pocket ${best_three.iloc[0]['Pocket']:,.0f}"
-    )
+        st.subheader(
+            "🚛 BEST 3-LOAD SEQUENCE"
+        )
 
-st.write(
-        "LEG 2"
-    )
+        best_three = profit_df.sort_values(
+            by="Dispatch Score",
+            ascending=False
+        ).head(3)
 
-st.success(
-        f"{best_three.iloc[1]['CITY']}, "
-        f"{best_three.iloc[1]['ST']} | "
-        f"Pocket ${best_three.iloc[1]['Pocket']:,.0f}"
-    )
+        total_pocket = (
+            best_three["Pocket"]
+            .sum()
+        )
 
-st.write(
-        "LEG 3"
-    )
+        st.write("LEG 1")
 
-st.success(
-        f"{best_three.iloc[2]['CITY']}, "
-        f"{best_three.iloc[2]['ST']} | "
-        f"Pocket ${best_three.iloc[2]['Pocket']:,.0f}"
-    )
+        st.success(
+            f"{best_three.iloc[0]['CITY']}, "
+            f"{best_three.iloc[0]['ST']} | "
+            f"Pocket ${best_three.iloc[0]['Pocket']:,.0f}"
+        )
 
-st.subheader(
-        f"💰 TOTAL POCKET: ${total_pocket:,.0f}"
-    )
-   
-st.dataframe(
+        st.write("LEG 2")
+
+        st.success(
+            f"{best_three.iloc[1]['CITY']}, "
+            f"{best_three.iloc[1]['ST']} | "
+            f"Pocket ${best_three.iloc[1]['Pocket']:,.0f}"
+        )
+
+        st.write("LEG 3")
+
+        st.success(
+            f"{best_three.iloc[2]['CITY']}, "
+            f"{best_three.iloc[2]['ST']} | "
+            f"Pocket ${best_three.iloc[2]['Pocket']:,.0f}"
+        )
+
+        st.subheader(
+            f"💰 TOTAL POCKET: ${total_pocket:,.0f}"
+        )
+
+        st.dataframe(
             profit_df
         )
 
-master_df = build_master_load_pool(
+    master_df = build_master_load_pool(
         dispatch_df,
         hotlead_df,
         offer_df
     )
 
-st.subheader(
+    st.subheader(
         "MASTER LOAD POOL"
     )
 
-st.dataframe(
+    st.dataframe(
         master_df,
         use_container_width=True
     )
 
-st.success(
+    st.success(
         "Dispatch AI Running"
     )
