@@ -136,11 +136,9 @@ with col2:
         value="PA"
     )
 
-loads_needed = st.selectbox(
-    "Loads Needed",
-    [1, 2, 3],
-    index=2
-)
+    route_home = st.checkbox(
+        "🏠 Route Toward Home"
+    )
 
 dispatch_text = st.text_area(
     "Dispatch Dump",
@@ -512,7 +510,10 @@ def build_offer_profitability(offer_df):
 def build_three_leg_route(
     profit_df,
     start_city,
-    start_state
+    start_state,
+    home_city=None,
+    home_state=None,
+    route_home=False
 ):
 
     route = []
@@ -521,6 +522,16 @@ def build_three_leg_route(
 
     origin_city = start_city
     origin_state = start_state
+
+    st.write(
+        f"Route Home = {route_home}"
+    )
+
+    if route_home:
+
+        st.write(
+            f"Home Destination = {home_city}, {home_state}"
+        )
 
     for _ in range(min(3, len(remaining))):
 
@@ -553,10 +564,30 @@ def build_three_leg_route(
 
             score = row["Pocket"]
 
+            if route_home and len(route) == 2:
+
+                home_coords = get_coordinates(
+                    home_city,
+                    home_state
+                )
+
+                if home_coords and load_coords:
+
+                    distance_home = distance_miles(
+                        load_coords[0],
+                        load_coords[1],
+                        home_coords[0],
+                        home_coords[1]
+                    )
+
+                    score = (
+                        score
+                        - distance_home
+                    )
+
             scores.append(score)
 
         remaining["Route Score"] = scores
-
         st.write(
             f"Current Origin: {origin_city}, {origin_state}"
         )
@@ -703,10 +734,13 @@ if st.button("RUN DISPATCH AI"):
         )
 
         best_three = build_three_leg_route(
-            profit_df,
-            current_city,
-            current_state
-        )
+    profit_df,
+    current_city,
+    current_state,
+    home_city,
+    home_state,
+    route_home
+)
 
         total_pocket = (
             best_three["Pocket"]
