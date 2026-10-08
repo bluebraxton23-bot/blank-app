@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit as st
 import pandas as pd
 import numpy as np
 import requests
@@ -15,13 +14,12 @@ OVERHEAD_COST = 229.00
 
 INSURANCE_COST = 79.00
 
+@st.cache_data
 def get_coordinates(city, state):
 
     query = f"{city}, {state}"
 
-    url = (
-        "https://nominatim.openstreetmap.org/search"
-    )
+    url = "https://nominatim.openstreetmap.org/search"
 
     params = {
         "q": query,
@@ -33,29 +31,38 @@ def get_coordinates(city, state):
         "User-Agent": "BeyondDispatch"
     }
 
-    response = requests.get(
-        url,
-        params=params,
-        headers=headers,
-        timeout=10
-    )
-
     try:
+
+        response = requests.get(
+            url,
+            params=params,
+            headers=headers,
+            timeout=10
+        )
 
         data = response.json()
 
-    except Exception:
+        if not data:
+
+            st.write(
+                f"❌ No coordinates found for {city}, {state}"
+            )
+
+            return None
+
+        return (
+            float(data[0]["lat"]),
+            float(data[0]["lon"])
+        )
+
+    except Exception as e:
+
+        st.write(
+            f"❌ Coordinate lookup failed for {city}, {state}: {e}"
+        )
 
         return None
 
-    if not data:
-
-        return None
-
-    return (
-        float(data[0]["lat"]),
-        float(data[0]["lon"])
-    )
 from math import (
     radians,
     sin,
@@ -562,7 +569,11 @@ def build_three_leg_route(
 
                 distance = 9999
 
-            score = row["Pocket"]
+            score = (
+                row["Pocket"]
+                -
+                (distance * 0.25)
+            )
 
             if route_home and len(route) == 2:
 
@@ -582,10 +593,13 @@ def build_three_leg_route(
 
                     score = (
                         score
-                        - distance_home
+                        -
+                        (distance_home * 0.10)
                     )
 
-            scores.append(score)
+            scores.append(
+                score
+            )
 
         remaining["Route Score"] = scores
         st.write(
